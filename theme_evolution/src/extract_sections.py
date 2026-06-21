@@ -14,15 +14,15 @@ ROOT_DIR = Path(__file__).parents[1]
 CONFIG_FILE = ROOT_DIR / "config.yaml"
 PROMPT_FILE = "prompts/extract_prompt.txt"
 PROCESSED_DATA = "processed"
-NUM_PAGE = 5
+NUM_PAGE = 2
 
 os.makedirs(PROCESSED_DATA, exist_ok=True)
 
-with open(CONFIG_FILE, "r") as file:
-    CONFIG = yaml.safe_load(file)
+with open(CONFIG_FILE, "r") as f:
+    CONFIG = yaml.safe_load(f)
 
-with open(PROMPT_FILE, "r") as file:
-    PROMPT = file.read()
+with open(PROMPT_FILE, "r") as f:
+    PROMPT = f.read()
 
 FILE_FOLDER = ROOT_DIR / CONFIG["data"]
 
@@ -33,14 +33,10 @@ CLIENT = OpenAI(
 
 class SectionHeaders(BaseModel):
     section_headers: list[str]
-
     model_config = ConfigDict(extra="forbid")
 
 
-def extract_section_info(
-    text: str, prompt: str, CLIENT: OpenAI = CLIENT
-) -> SectionHeaders:
-
+def extract_section_info(text: str, prompt: str) -> SectionHeaders:
     response = CLIENT.beta.chat.completions.parse(
         model="openai/gpt-oss-20b",
         messages=[
@@ -49,50 +45,53 @@ def extract_section_info(
         ],
         response_format=SectionHeaders,
     )
-    
     return response.choices[0].message.parsed
 
-list_of_files = os.listdir(FILE_FOLDER)
 
-# file = FILE_FOLDER / list_of_files[0]
+list_of_files = os.listdir(FILE_FOLDER)
 year_section_details = {}
 
-for file in list_of_files:
-    year = int(file[:4])
-    year_section_details.update({year: []})
+for filename in list_of_files:
 
-    print("Current Year", year)
-    file = FILE_FOLDER / file
-    with pdfplumber.open(file) as pdf:
+    year = int(filename[:4])
+    year_section_details.setdefault(year, [])
+
+    print("Current Year:", year)
+
+    pdf_path = FILE_FOLDER / filename
+
+    with pdfplumber.open(pdf_path) as pdf:
         pages = pdf.pages
-
         total_pages = len(pages)
 
         current_page = 0
 
         while current_page < total_pages:
-            print(
-                "Current Page :{}, Num Pages {}".format(
-                    current_page, current_page + NUM_PAGE
+            try:
+                print(f"Current Page: {current_page}, Next: {current_page + NUM_PAGE}")
+
+                current_pages = pages[current_page: current_page + NUM_PAGE]
+
+                text = " ".join(
+                    (page.extract_text(x_tolerance=2) or "") for page in current_pages
                 )
-            )
-            current_pages = pages[current_page : current_page + NUM_PAGE]
 
-            text = " ".join(
-                [page.extract_text(x_tolerance=2) for page in current_pages]
-            )
+                if not text.strip():
+                    current_page += NUM_PAGE
+                    continue
 
-            sections = extract_section_info(text, PROMPT)
+                sections = extract_section_info(text, PROMPT)
 
-            year_section_details[year].extend(sections)
+                year_section_details[year].extend(sections.section_headers)
 
-            print("Sections", sections)
+                print("Sections:", sections.section_headers)
+
+            except Exception as e:
+                print("Error:", e)
+
             current_page += NUM_PAGE
 
-    print("Done : ", file)
-    print("\n")
+with open(f"{PROCESSED_DATA}/sections.json", "w") as f:
+    json.dump(year_section_details, f, indent=2)
 
-with open(f"{PROCESSED_DATA}/sections.json", "w") as file:
-    json.dump(year_section_details, file)
-
-print("Saved the results at ", f"{PROCESSED_DATA}/sections.json")
+print("Saved results at:", f"{PROCESSED_DATA}/sections.json")
