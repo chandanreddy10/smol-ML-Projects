@@ -10,7 +10,7 @@ ROOT_DIR = Path(__file__).parents[1]
 CONFIG_FILE = ROOT_DIR / "config.yaml"
 PROMPT_FILE = "prompts/extract_prompt.txt"
 PROCESSED_DATA = "processed"
-NUM_PAGE = 2
+NUM_PAGE = 5
 
 os.makedirs(PROCESSED_DATA, exist_ok=True)
 
@@ -33,7 +33,7 @@ def extract_section_info(
     text: str, prompt: str, CLIENT: OpenAI = CLIENT
 ) -> SectionHeaders:
     response = CLIENT.chat.completions.create(
-        model="any-model",
+        model="unsloth/Qwen3.5-4B-GGUF:Q4_K_M",
         messages=[
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": f"{prompt}\n\nPage:\n{text}", "think": False},
