@@ -3,8 +3,12 @@ import pdfplumber
 from pathlib import Path
 import os
 from openai import OpenAI
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 import json
+from dotenv import load_dotenv
+
+load_dotenv("../secrets.env")
+groq_api_key = os.getenv("GROQ_API_KEY")
 
 ROOT_DIR = Path(__file__).parents[1]
 CONFIG_FILE = ROOT_DIR / "config.yaml"
@@ -22,33 +26,31 @@ with open(PROMPT_FILE, "r") as file:
 
 FILE_FOLDER = ROOT_DIR / CONFIG["data"]
 
-CLIENT = OpenAI(base_url="http://127.0.0.1:8080", api_key="Not required")
-
+CLIENT = OpenAI(
+    api_key=groq_api_key,
+    base_url="https://api.groq.com/openai/v1/",
+)
 
 class SectionHeaders(BaseModel):
-    section_headers: list[str] | str | dict | None
+    section_headers: list[str]
+
+    model_config = ConfigDict(extra="forbid")
 
 
 def extract_section_info(
     text: str, prompt: str, CLIENT: OpenAI = CLIENT
 ) -> SectionHeaders:
-    response = CLIENT.chat.completions.create(
-        model="unsloth/Qwen3.5-4B-GGUF:Q4_K_M",
+
+    response = CLIENT.beta.chat.completions.parse(
+        model="openai/gpt-oss-20b",
         messages=[
             {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": f"{prompt}\n\nPage:\n{text}", "think": False},
+            {"role": "user", "content": f"{prompt}\n\nPage:\n{text}"},
         ],
-        response_format={
-            "type": "json_schema",
-            "json_schema": SectionHeaders.model_json_schema(),
-        },
+        response_format=SectionHeaders,
     )
-    content = response.choices[0].message.content
-    content = content.replace("```json", "")
-    content = content.replace("```", "")
-
-    return SectionHeaders.model_validate_json(content)
-
+    
+    return response.choices[0].message.parsed
 
 list_of_files = os.listdir(FILE_FOLDER)
 
@@ -69,7 +71,11 @@ for file in list_of_files:
         current_page = 0
 
         while current_page < total_pages:
-            print("Current Page :{}, Num Pages {}".format(current_page, current_page + NUM_PAGE))
+            print(
+                "Current Page :{}, Num Pages {}".format(
+                    current_page, current_page + NUM_PAGE
+                )
+            )
             current_pages = pages[current_page : current_page + NUM_PAGE]
 
             text = " ".join(
@@ -77,12 +83,12 @@ for file in list_of_files:
             )
 
             sections = extract_section_info(text, PROMPT)
-            
+
             year_section_details[year].extend(sections)
 
             print("Sections", sections)
             current_page += NUM_PAGE
-            
+
     print("Done : ", file)
     print("\n")
 
