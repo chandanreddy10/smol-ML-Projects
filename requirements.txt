@@ -1,1 +1,8 @@
 pdfplumber
+transformers
+torch
+datasets
+peft
+trl 
+accelerate 
+bitsandbytes
