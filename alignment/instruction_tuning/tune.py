@@ -79,10 +79,7 @@ training_args = TrainingArguments(
 trainer = SFTTrainer(
     model=MODEL,
     train_dataset=ds["train"],
-    tokenizer=TOKENIZER,
-    dataset_text_field="text",
-    args=training_args,
-    max_seq_length=1024
+    args=training_args
 )
 
 print("Start Training...................")
