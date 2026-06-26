@@ -59,10 +59,7 @@ training_args = TrainingArguments(
 
 trainer = DPOTrainer(
     model=model,
-    ref_model=None,
-    args=training_args,
-    train_dataset=dataset["train"],
-    processing_class=tokenizer,
+    train_dataset=dataset["train"]
 )
 
 trainer.train()
