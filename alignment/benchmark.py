@@ -16,9 +16,9 @@ CONFIG = {
     "dataset_name": "LLM-LAT/harmful-dataset",
     "dataset_split": "train",
 
-    "model_type": "dpo" #"lora",
+    "model_type": "dpo", #"lora",
     "base_model": "Qwen/Qwen2.5-1.5B",
-    "adapter_path": "dpo/Qwen2.5-1.5B-DPO",
+    "adapter_path": "chandanreddy/qwen2.5-1.5b-safety-dpo",
 
     "generation": {
         "max_new_tokens": 256,
@@ -149,8 +149,6 @@ def generate(prompt):
         )
 
     return tokenizer.decode(output[0], skip_special_tokens=True)
-
-
 
 subset = sample_from_dataset(DATASET, CONFIG["num_samples"])
 
