@@ -3,3 +3,4 @@ __pycache__
 theme_evolution/src/processed
 theme_evolution/secrets.env
 qwen2.5-1.5b-lora
+train.log
