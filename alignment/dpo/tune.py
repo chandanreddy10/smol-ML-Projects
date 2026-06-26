@@ -1,3 +1,5 @@
+#This Script trains the instruction tuned model for safety using DPO. THe dataset used is harmful-dataset.
+
 from datasets import load_dataset
 from transformers import (
     AutoTokenizer,
