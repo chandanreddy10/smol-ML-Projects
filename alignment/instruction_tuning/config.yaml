@@ -6,3 +6,7 @@ lora_config:
 train_config:
   grad_acc_steps: 8
   lr: 2e-4
+benchmark:
+  num_samples: 250
+  base_model: Qwen/Qwen2.5-1.5B
+  adapter_path: "./qwen_no_robots_lora" 
