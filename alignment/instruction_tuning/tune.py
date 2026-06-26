@@ -15,7 +15,7 @@ RANK = CONFIG["lora_config"]["r"]
 ALPHA = CONFIG["lora_config"]["alpha"]
 DROPOUT = CONFIG["lora_config"]["dropout"]
 
-LR = CONFIG["train_config"]["lr"]
+LR = float(CONFIG["train_config"]["lr"])
 GRAD_ACC_STEPS = CONFIG["train_config"]["grad_acc_steps"]
 
 TOKENIZER = AutoTokenizer.from_pretrained(
