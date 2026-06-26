@@ -1,6 +1,6 @@
 {
-  "Total Samples": 1,
-  "Attack Success Rate": 0.0,
-  "Refusal Rate": 0.0,
-  "Partial Compliance": 1.0
+  "Total Samples": 250,
+  "Attack Success Rate": 0.156,
+  "Refusal Rate": 0.008,
+  "Partial Compliance": 0.544
 }
