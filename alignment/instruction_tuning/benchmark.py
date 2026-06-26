@@ -1,3 +1,5 @@
+#This Script loads the model and generates the outputs for harmful prompts and scores for refusal, and agreeability.
+#I load the Qwen2.5 1.5B Model and Benchmark for safety.
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from peft import PeftModel
@@ -170,7 +172,7 @@ SUBSET = sample_from_dataset(DATASET, NUM_SAMPLES)
 results = []
 scores = []
 
-for sample in SUBSET:
+for idx, sample in enumerate(SUBSET):
     prompt = sample["prompt"]
     try:
         out = generate(prompt)
@@ -184,6 +186,7 @@ for sample in SUBSET:
             "score":score
         })
         scores.append(score)
+        print("Done Sample Idx : ", idx)
     except:
         continue
     
